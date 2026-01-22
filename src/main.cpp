@@ -8,6 +8,7 @@
 #include "Config.h"
 #include "Website.h"
 #include "ConcussionMath.h"
+#include "ScanI2CBus.h"
 
 // --- Global Objects ---
 Adafruit_MPU6050 mpu;
@@ -15,7 +16,8 @@ Adafruit_ADXL345_Unified adxl(12345);
 ESP8266WebServer server(80);
 
 // --- Global State ---
-struct {
+struct
+{
     float ax, ay, az;
     float temp;
     String log;
@@ -23,7 +25,8 @@ struct {
     uint32_t last_sample_us;
 } device;
 
-struct {
+struct
+{
     bool active = false;
     uint32_t start_ms = 0;
     uint32_t last_ms = 0;
@@ -35,57 +38,98 @@ bool led_impact_on = false;
 uint32_t led_timer_ms = 0;
 
 // --- Helpers ---
-void logEvent(String msg) {
+void logEvent(String msg)
+{
     Serial.println(msg);
     device.log = msg + "<br>" + device.log;
-    if (device.log.length() > 1500) device.log = device.log.substring(0, 1500);
+    if (device.log.length() > 1500)
+        device.log = device.log.substring(0, 1500);
 }
 
-void handleData() {
+void handleData()
+{
     String json;
     json.reserve(256); // Pre-allocate memory to prevent fragmentation
     json = "{";
-    json += F("\"ax\":"); json += String(device.ax, 2);
-    json += F(",\"ay\":"); json += String(device.ay, 2);
-    json += F(",\"az\":"); json += String(device.az, 2);
-    json += F(",\"temp\":"); json += String(device.temp, 1);
-    json += F(",\"log\":\""); json += device.log;
+    json += F("\"ax\":");
+    json += String(device.ax, 2);
+    json += F(",\"ay\":");
+    json += String(device.ay, 2);
+    json += F(",\"az\":");
+    json += String(device.az, 2);
+    json += F(",\"temp\":");
+    json += String(device.temp, 1);
+    json += F(",\"log\":\"");
+    json += device.log;
     json += F("\"}");
     server.send(200, F("application/json"), json);
 }
 
 // --- Initialization ---
-void setup() {
+void setup()
+{
     // 1. Hardware Initialization
-    Serial.begin(115200);
-    pinMode(RED_LED_PIN, OUTPUT);
-    digitalWrite(RED_LED_PIN, LOW);
+    Serial.begin(SERIAL_BAUD);
+    delay(1000);
+    Serial.println();
+    Serial.println();
+    Serial.println(MSG_SYS_START);
+    pinMode(ONBOARD_LED_PIN, OUTPUT);
+    digitalWrite(ONBOARD_LED_PIN, LOW);
 
     // 2. I2C Bus Start
     Wire.begin(SDA_PIN, SCL_PIN);
     Wire.setClock(400000); // Fast mode for high-frequency sampling
 
-    // 3. Sensor Initialization & Verification
-    bool mpu_ok = mpu.begin(MPU_ADDR, &Wire);
-    if (mpu_ok) {
+    // 3. Sensor Initialization with Auto-Retry
+    int retry = 0;
+    bool mpu_ok = false;
+    bool adxl_ok = false;
+
+    while (retry < 5)
+    {
+        // Try to start MPU
+        if (!mpu_ok)
+            mpu_ok = mpu.begin(MPU_ADDR, &Wire);
+
+        // Try to start ADXL
+        if (!adxl_ok)
+            adxl_ok = adxl.begin(ADXL_ADDR);
+
+        if (mpu_ok && adxl_ok)
+            break; // Success! Exit the loop.
+
+        // If we reach here, something faileds
+        Serial.print(F("Sensor init failed. Retry "));
+        Serial.print(retry + 1);
+        Serial.println(F(" of 5..."));
+
+        // Reset the I2C bus to try and clear any electrical hangs
+        Wire.begin(SDA_PIN, SCL_PIN);
+
+        delay(300);
+        retry++;
+    }
+
+    // Final check before proceeding
+    if (mpu_ok)
         Serial.println(MSG_MPU_FOUND);
-    } else {
-        Serial.println("MPU6050 missing at " + String(MPU_ADDR, HEX));
-    }
+    else
+        Serial.println(F("CRITICAL: MPU6050 Missing"));
 
-    bool adxl_ok = adxl.begin(ADXL_ADDR);
-    if (adxl_ok) {
+    if (adxl_ok)
         Serial.println(MSG_ADXL_FOUND);
-    } else {
-        Serial.println("ADXL375 missing at " + String(ADXL_ADDR, HEX));
-    }
+    else
+        Serial.println(F("CRITICAL: ADXL375 Missing"));
 
-    // Critical Halt if sensors fail
-    if (!mpu_ok || !adxl_ok) {
+    if (!mpu_ok || !adxl_ok)
+    {
         Serial.println(MSG_SENSOR_ERROR);
-        while (1) { 
-            delay(100); 
-            digitalWrite(RED_LED_PIN, !digitalRead(RED_LED_PIN)); // Rapid blink = hardware error
+        scanI2CBus(); // Run the scanner to see what IS connected
+        while (1)
+        {
+            delay(100);
+            digitalWrite(ONBOARD_LED_PIN, !digitalRead(ONBOARD_LED_PIN));
         }
     }
 
@@ -107,16 +151,15 @@ void setup() {
     Serial.println(WiFi.softAPIP());
 
     // 6. Web Server Endpoints
-    server.on("/", []() { 
-        server.send(200, "text/html", index_html); 
-    });
+    server.on("/", []()
+              { server.send(200, "text/html", index_html); });
 
     server.on("/data", handleData);
 
-    server.on("/toggle", []() { 
-        digitalWrite(RED_LED_PIN, !digitalRead(RED_LED_PIN)); 
-        server.send(200, "text/plain", "OK"); 
-    });
+    server.on("/toggle", []()
+              { 
+        digitalWrite(ONBOARD_LED_PIN, !digitalRead(ONBOARD_LED_PIN)); 
+        server.send(200, "text/plain", "OK"); });
 
     server.begin();
 
@@ -126,22 +169,25 @@ void setup() {
 }
 
 // --- Main Loop ---
-void loop() {
+void loop()
+{
     // 1. Web Services
     server.handleClient();
 
     // 2. Sample Timing (Non-blocking)
     uint32_t now_us = micros();
-    if (now_us - device.last_sample_us < SAMPLE_PERIOD_US) return;
-    
+    if (now_us - device.last_sample_us < SAMPLE_PERIOD_US)
+        return;
+
     float dt = (now_us - device.last_sample_us) / 1e6f;
     // Safety check for dt
-    if (dt <= 0) dt = (SAMPLE_PERIOD_US / 1e6f);
+    if (dt <= 0)
+        dt = (SAMPLE_PERIOD_US / 1e6f);
     device.last_sample_us = now_us;
 
     // 3. Sensor Acquisition
     sensors_event_t a_ev, g_ev, t_ev;
-    adxl.getEvent(&a_ev);           // Get Accel from ADXL375
+    adxl.getEvent(&a_ev);              // Get Accel from ADXL375
     mpu.getEvent(&a_ev, &g_ev, &t_ev); // Get Gyro/Temp from MPU6050
 
     // Update state for web dashboard
@@ -152,64 +198,72 @@ void loop() {
 
     // 4. Physics Calculations
     // Linear acceleration magnitude (minus gravity offset)
-    float a_mag_g = (sqrtf(device.ax*device.ax + device.ay*device.ay + device.az*device.az) / G0) - 1.0f;
-    if (a_mag_g < 0) a_mag_g = 0;
+    float a_mag_g = (sqrtf(device.ax * device.ax + device.ay * device.ay + device.az * device.az) / G0) - 1.0f;
+    if (a_mag_g < 0)
+        a_mag_g = 0;
 
     // Angular acceleration magnitude (Alpha)
     float alpha_x = (g_ev.gyro.x - device.prev_wx) / dt;
     float alpha_y = (g_ev.gyro.y - device.prev_wy) / dt;
     float alpha_z = (g_ev.gyro.z - device.prev_wz) / dt;
-    float alpha_mag = sqrtf(alpha_x*alpha_x + alpha_y*alpha_y + alpha_z*alpha_z);
-    
+    float alpha_mag = sqrtf(alpha_x * alpha_x + alpha_y * alpha_y + alpha_z * alpha_z);
+
     // Store previous gyro values for next dt calculation
-    device.prev_wx = g_ev.gyro.x; 
-    device.prev_wy = g_ev.gyro.y; 
+    device.prev_wx = g_ev.gyro.x;
+    device.prev_wy = g_ev.gyro.y;
     device.prev_wz = g_ev.gyro.z;
 
     uint32_t now_ms = millis();
 
     // 5. LED Control Logic
-    if (led_impact_on && (now_ms - led_timer_ms > 1000)) {
-        digitalWrite(RED_LED_PIN, LOW);
+    if (led_impact_on && (now_ms - led_timer_ms > 1000))
+    {
+        digitalWrite(ONBOARD_LED_PIN, LOW);
         led_impact_on = false;
     }
 
     // 6. Impact Detection Trigger
     bool can_trigger = (now_ms - event.last_ms > REFRACTORY_MS);
-    
-    if (!event.active && can_trigger && a_mag_g >= TRIGGER_G) {
+
+    if (!event.active && can_trigger && a_mag_g >= TRIGGER_G)
+    {
         event.active = true;
         event.start_ms = now_ms;
         event.peakPLA = a_mag_g;
         event.peakPRA = alpha_mag;
-        
-        digitalWrite(RED_LED_PIN, HIGH);
+
+        digitalWrite(ONBOARD_LED_PIN, HIGH);
         led_impact_on = true;
         led_timer_ms = now_ms;
-        
+
         logEvent(MSG_IMPACT_DETECTED);
     }
 
     // 7. Event Processing (Windowing)
-    if (event.active) {
+    if (event.active)
+    {
         // Track the highest peaks found during the 80ms window
-        if (a_mag_g > event.peakPLA) event.peakPLA = a_mag_g;
-        if (alpha_mag > event.peakPRA) event.peakPRA = alpha_mag;
+        if (a_mag_g > event.peakPLA)
+            event.peakPLA = a_mag_g;
+        if (alpha_mag > event.peakPRA)
+            event.peakPRA = alpha_mag;
 
         // Close window and report
-        if (now_ms - event.start_ms >= WINDOW_MS) {
+        if (now_ms - event.start_ms >= WINDOW_MS)
+        {
             event.active = false;
             event.last_ms = now_ms;
 
             float cp = combinedProbability(event.peakPLA, event.peakPRA);
-            
+
             // Build and log the report string
-            String report = MSG_EVENT_REPORT + String(event.peakPLA, 1) + "g" + 
-                           MSG_RISK_LABEL + riskLabel(cp);
-            
+            String report = MSG_EVENT_REPORT + String(event.peakPLA, 1) + "g" +
+                            MSG_RISK_LABEL + riskLabel(cp);
+
             logEvent(report);
 
-            if (cp >= CP_MED) {
+            if (cp >= CP_MED)
+            {
                 logEvent(MSG_CHECK_PLAYER);
             }
         }

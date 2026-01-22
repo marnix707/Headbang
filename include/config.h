@@ -9,7 +9,7 @@ const char* AP_SSID = "Impact-Monitor-AP";
 const char* AP_PASSWORD = "12345678";
 
 // --- Hardware Settings ---
-#define RED_LED_PIN 0      // GPIO0 (D3 on D1 Mini)
+#define ONBOARD_LED_PIN 0      // GPIO0 (D3 on D1 Mini)
 #define SDA_PIN D2
 #define SCL_PIN D1
 
