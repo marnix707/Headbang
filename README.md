@@ -8,7 +8,7 @@ An intelligent, IoT-enabled impact monitoring system designed to detect high-G h
 
 ---
 
-## 📑 Table of Contents
+## Table of Contents
 1. [System Overview](#system-overview)
 2. [Hardware Requirements](#hardware-requirements)
 3. [Software Architecture](#software-architecture)
@@ -31,7 +31,7 @@ The Impact Monitor functions as a standalone **Wi-Fi Access Point**. It samples 
 
 ---
 
-## 🔌 Hardware Requirements
+## Hardware Requirements
 
 ### Component List
 | Component | Purpose | Details |
@@ -49,7 +49,7 @@ The sensors communicate over the **I2C Bus**. On the D1 Mini, the defaults are:
 
 ---
 
-## 📂 Software Architecture
+## 📂Software Architecture
 
 The project follows a modular C++ structure for maximum readability and ease of maintenance.
 
