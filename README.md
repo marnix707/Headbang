@@ -9,7 +9,7 @@ An intelligent, IoT-enabled impact monitoring system designed to detect high-G h
 
 ---
 
-## 📑 Table of Contents
+## 📑Table of Contents
 
 1. [System Overview](#system-overview)
 2. [Hardware Requirements](#hardware-requirements)
@@ -22,7 +22,7 @@ An intelligent, IoT-enabled impact monitoring system designed to detect high-G h
 
 ---
 
-## 🛰️ System Overview
+## 🛰️System Overview
 
 The Impact Monitor functions as a standalone **Wi-Fi Access Point**. It samples sensor data at high frequencies (~800Hz) to ensure that sub-millisecond impact peaks are captured accurately.
 
@@ -33,7 +33,7 @@ The Impact Monitor functions as a standalone **Wi-Fi Access Point**. It samples 
 
 ---
 
-## 🔌 Hardware Requirements
+## 🔌Hardware Requirements
 
 ### Component List
 
@@ -46,7 +46,7 @@ The Impact Monitor functions as a standalone **Wi-Fi Access Point**. It samples 
 
 ---
 
-## ⚡ Wiring & Connections
+## ⚡Wiring & Connections
 
 The sensors communicate over the **I2C Bus**. On the D1 Mini, the default connections are:
 
@@ -60,84 +60,20 @@ The sensors communicate over the **I2C Bus**. On the D1 Mini, the default connec
 
 ---
 
-## 📂 Software Architecture
-
-# 🛡️ Impact Monitor: ESP8266 Concussion Sensor
-
-![Status](https://img.shields.io/badge/Status-Stable-success)
-![Platform](https://img.shields.io/badge/Platform-ESP8266-blue)
-![Framework](https://img.shields.io/badge/Framework-Arduino%2FPlatformIO-orange)
-![License](https://img.shields.io/badge/License-MIT-green)
-
-An intelligent, IoT-enabled impact monitoring system designed to detect high-G head impacts in real-time. By combining linear acceleration (**ADXL375**) and angular velocity (**MPU6050**), the system calculates the **Combined Probability** of a concussion and alerts staff via a localized web dashboard and onboard visual indicators.
-
----
-
-## 📑 Table of Contents
-
-1. [System Overview](#system-overview)
-2. [Hardware Requirements](#hardware-requirements)
-3. [Wiring & Connections](#wiring--connections)
-4. [Software Architecture](#software-architecture)
-5. [Installation & Setup](#installation--setup)
-6. [The Physics: Concussion Math](#the-physics-concussion-math)
-7. [Web Dashboard](#web-dashboard)
-8. [Safety Disclaimer](#safety-disclaimer)
-
----
-
-## 🛰️ System Overview
-
-The Impact Monitor functions as a standalone **Wi-Fi Access Point**. It samples sensor data at high frequencies (~800Hz) to ensure that sub-millisecond impact peaks are captured accurately.
-
-- **Primary Sensor:** ADXL375 (±200g range) for Peak Linear Acceleration (PLA).
-- **Secondary Sensor:** MPU6050 for Peak Rotational Acceleration (PRA).
-- **Processing:** ESP8266 (D1 Mini) calculates risk thresholds locally.
-- **Interface:** Mobile-responsive Web Dashboard accessible via any smartphone browser.
-
----
-
-## 🔌 Hardware Requirements
-
-### Component List
-
-| Component | Purpose | Details |
-| :--- | :--- | :--- |
-| **Wemos D1 Mini** | Logic & Wi-Fi | ESP8266 based microcontroller |
-| **ADXL375** | High-G Accel | Measures up to 200g impacts |
-| **MPU6050** | Gyroscope | Measures rotational velocity & temperature |
-| **Red LED** | Visual Alert | Indicators for impact and hardware errors |
-
----
-
-## ⚡ Wiring & Connections
-
-The sensors communicate over the **I2C Bus**. On the D1 Mini, the default connections are:
-
-| Pin Name | ESP8266 Pin | Function |
-| :--- | :--- | :--- |
-| **SDA** | GPIO4 (D2) | I2C Data |
-| **SCL** | GPIO5 (D1) | I2C Clock |
-| **LED** | GPIO0 (D3) | Visual Indicator |
-
-> **Note:** Ensure your sensors are supplied with the correct voltage (typically 3.3V) from the D1 Mini.
-
----
-
-## 📂 Software Architecture
-
-The project follows a modular C++ structure to separate hardware management, logic, and interface code.
-
+## 📂Software Architecture
 ```text
 ├── include/
 │   ├── Config.h          # Hardware pins, Wi-Fi credentials, and constants
 │   ├── Website.h         # HTML/CSS/JS dashboard stored in PROGMEM
 │   ├── ConcussionMath.h  # Risk probability and label algorithms
+│   ├── Strings.h         # Localization and UI text definitions
 │   ├── Messages.h        # System status messages and logging definitions
 │   └── I2CManager.h      # Abstraction layer for I2C sensor communication
 ├── src/
 │   ├── main.cpp          # Main setup/loop and Global State management
-└── platformio.ini        # Dependency and board configuration
+│   └── I2CManager.cpp    # Implementation of sensor data retrieval
+└── platformio.ini        # Dependency and board configuration 
+```
 
 The project is built on the **PlatformIO** framework and divides functionality into logical states:
 
@@ -151,7 +87,7 @@ The project is built on the **PlatformIO** framework and divides functionality i
 
 ---
 
-## 🚀 Installation & Setup
+## 🚀Installation & Setup
 
 1.  **Prerequisites:**
     * Install [Visual Studio Code](https://code.visualstudio.com/).
@@ -171,7 +107,7 @@ The project is built on the **PlatformIO** framework and divides functionality i
 
 ---
 
-## 🧪 The Physics: Concussion Math
+## 🧪The Physics: Concussion Math
 
 The system doesn't just measure "how hard" a hit was; it measures **risk**.
 
@@ -190,7 +126,7 @@ The code utilizes a probability function that combines PLA and PRA to determine 
 
 ---
 
-## 💻 Web Dashboard
+## 💻Web Dashboard
 
 The built-in webserver provides a real-time interface:
 
@@ -200,7 +136,7 @@ The built-in webserver provides a real-time interface:
 
 ---
 
-## 🤝 Contributing
+## 🤝Contributing
 
 Contributions, issues, and feature requests are welcome!
 Feel free to check the [issues page](https://github.com/marnix707/Headbang/issues).
@@ -213,7 +149,7 @@ Feel free to check the [issues page](https://github.com/marnix707/Headbang/issue
 
 ---
 
-## ⚠️ Safety Disclaimer
+## ⚠️Safety Disclaimer
 
 This device is a **prototype** and is intended for research and educational purposes only. It is **not** a certified medical device.
 
