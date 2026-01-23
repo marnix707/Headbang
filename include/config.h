@@ -18,7 +18,7 @@ const char* AP_PASSWORD = "12345678";
 #define ADXL_ADDR 0x53
 
 // --- Impact Parameters ---
-const uint32_t SAMPLE_PERIOD_US = 1250;  // ~800Hz
+const uint32_t SAMPLE_PERIOD_US = 125;  // ~8000Hz
 const float TRIGGER_G           = 10.0f;
 const uint16_t WINDOW_MS        = 80;
 const uint16_t REFRACTORY_MS    = 300;

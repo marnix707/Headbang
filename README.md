@@ -42,7 +42,7 @@ The Impact Monitor functions as a standalone **Wi-Fi Access Point**. It samples 
 | **Wemos D1 Mini** | Logic & Wi-Fi | ESP8266 based microcontroller |
 | **ADXL375** | High-G Accel | Measures up to 200g impacts |
 | **MPU6050** | Gyroscope | Measures rotational velocity & temperature |
-| **Red LED** | Visual Alert | Indicators for impact and hardware errors |
+| **Onboard LED** | Visual Alert | Indicators for impact and hardware errors |
 
 ---
 
