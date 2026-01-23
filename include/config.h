@@ -2,7 +2,7 @@
 #define CONFIG_H
 
 #include <Arduino.h>
-#include "Strings_en.h"
+#include "Messages_en.h"
 
 // --- Wi-Fi AP Settings ---
 const char* AP_SSID = "Impact-Monitor-AP";
@@ -27,5 +27,8 @@ const float G0                  = 9.80665f;
 // --- Risk Thresholds ---
 const float CP_MED  = 0.20f;
 const float CP_HIGH = 0.50f;
+
+boolean debugging = false;
+uint32_t debugging_perdio_ms = 1000;
 
 #endif

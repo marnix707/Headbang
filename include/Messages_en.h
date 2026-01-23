@@ -1,5 +1,5 @@
-#ifndef STRINGS_EN_H
-#define STRINGS_EN_H
+#ifndef MESSAGES_EN_H
+#define MESSAGES_EN_H
 
 #include <Arduino.h>
 

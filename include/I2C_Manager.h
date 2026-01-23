@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <Wire.h>
+#include "Config.h"
 
 void scanI2CBus() {
     Serial.println(F("--- I2C Bus Scan ---"));
@@ -25,4 +26,27 @@ void scanI2CBus() {
     }
     Serial.println(F("--------------------"));
 }
+
+
+void clearI2CBus() {
+    pinMode(SDA_PIN, INPUT_PULLUP);
+    pinMode(SCL_PIN, OUTPUT);
+
+    // Send 9 clock pulses to force any hung sensor to release SDA
+    for (int i = 0; i < 9; i++) {
+        digitalWrite(SCL_PIN, LOW);
+        delayMicroseconds(5);
+        digitalWrite(SCL_PIN, HIGH);
+        delayMicroseconds(5);
+    }
+
+    // Send a STOP condition
+    pinMode(SDA_PIN, OUTPUT);
+    digitalWrite(SDA_PIN, LOW);
+    delayMicroseconds(5);
+    digitalWrite(SCL_PIN, HIGH);
+    delayMicroseconds(5);
+    digitalWrite(SDA_PIN, HIGH);
+}
+
 #endif

@@ -8,7 +8,7 @@
 #include "Config.h"
 #include "Website.h"
 #include "ConcussionMath.h"
-#include "ScanI2CBus.h"
+#include "I2C_Manager.h"
 
 // --- Global Objects ---
 Adafruit_MPU6050 mpu;
@@ -23,6 +23,7 @@ struct
     String log;
     float prev_wx, prev_wy, prev_wz;
     uint32_t last_sample_us;
+    uint32_t last_debug_ms;
 } device;
 
 struct
@@ -70,6 +71,7 @@ void setup()
 {
     // 1. Hardware Initialization
     Serial.begin(SERIAL_BAUD);
+    // clearI2CBus(); // Uncomment if you suspect I2C bus hang
     delay(1000);
     Serial.println();
     Serial.println();
@@ -77,9 +79,9 @@ void setup()
     pinMode(ONBOARD_LED_PIN, OUTPUT);
     digitalWrite(ONBOARD_LED_PIN, LOW);
 
-    // 2. I2C Bus Start
-    Wire.begin(SDA_PIN, SCL_PIN);
-    Wire.setClock(400000); // Fast mode for high-frequency sampling
+    // 2. I2C Bus Start ()
+    // Wire.begin(SDA_PIN, SCL_PIN);
+    // Wire.setClock(400000); // Fast mode for high-frequency sampling
 
     // 3. Sensor Initialization with Auto-Retry
     int retry = 0;
@@ -197,9 +199,21 @@ void loop()
     device.temp = t_ev.temperature;
 
     // 4. Physics Calculations
-    // Linear acceleration magnitude (minus gravity offset)
-    float a_mag_g = (sqrtf(device.ax * device.ax + device.ay * device.ay + device.az * device.az) / G0) - 1.0f;
-    if (a_mag_g < 0)
+
+    // A. Calculate raw magnitude in m/s^2
+    // 1. Get raw magnitude from the sensor
+    float a_raw_mag = sqrtf(device.ax * device.ax + device.ay * device.ay + device.az * device.az);
+
+    // 2. Convert to Gs and scale up for the ADXL375 hardware
+    // This makes your 0.98 resting value become ~12.25g
+    float a_total_g = (a_raw_mag / G0) * 12.5f;
+
+    // 3. Subtract the SCALED gravity (1.0g * 12.5)
+    // This brings your 12.25g resting value down to 0.0g
+    float a_mag_g = fabsf(a_total_g - 12.25f);
+
+    // 4. Noise Gate
+    if (a_mag_g < 1.0f)
         a_mag_g = 0;
 
     // Angular acceleration magnitude (Alpha)
@@ -267,5 +281,23 @@ void loop()
                 logEvent(MSG_CHECK_PLAYER);
             }
         }
+    }
+
+    // --- LIVE TELEMETRY DEBUG ---
+    if (debugging && now_ms - device.last_debug_ms >= debugging_perdio_ms)
+    { // Print 4 times per second
+        device.last_debug_ms = now_ms;
+
+        Serial.print(F("LIVE DATA -> "));
+        Serial.print(F(" LinG: "));
+        Serial.print(a_mag_g, 2);
+        Serial.print(F(" | RotA: "));
+        Serial.print(alpha_mag, 0);
+
+        if (event.active)
+        {
+            Serial.print(F(" [EVENT ACTIVE]"));
+        }
+        Serial.println();
     }
 }
