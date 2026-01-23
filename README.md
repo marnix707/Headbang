@@ -8,7 +8,7 @@ An intelligent, IoT-enabled impact monitoring system designed to detect high-G h
 
 ---
 
-## Table of Contents
+## 📑 Table of Contents
 1. [System Overview](#system-overview)
 2. [Hardware Requirements](#hardware-requirements)
 3. [Software Architecture](#software-architecture)
@@ -20,7 +20,7 @@ An intelligent, IoT-enabled impact monitoring system designed to detect high-G h
 
 ---
 
-## System Overview 
+## 🛰️System Overview
 
 The Impact Monitor functions as a standalone **Wi-Fi Access Point**. It samples sensor data at high frequencies (~800Hz) to ensure that sub-millisecond impact peaks are captured accurately.
 
@@ -31,7 +31,7 @@ The Impact Monitor functions as a standalone **Wi-Fi Access Point**. It samples 
 
 ---
 
-## Hardware Requirements
+## 🔌Hardware Requirements
 
 ### Component List
 | Component | Purpose | Details |
@@ -67,7 +67,7 @@ The project follows a modular C++ structure for maximum readability and ease of 
 
 ---
 
-## 🚀 Installation & Setup
+## 🚀Installation & Setup
 
 1. **Prerequisites:** Install [Visual Studio Code](https://code.visualstudio.com/) and the [PlatformIO](https://platformio.org/) extension.
 2. **Library Dependencies:** The following libraries are required (automatically handled by PlatformIO):
@@ -86,7 +86,7 @@ The project follows a modular C++ structure for maximum readability and ease of 
 
 ---
 
-## 🧪 The Physics: Concussion Math
+## 🧪The Physics: Concussion Math
 
 The system doesn't just measure "how hard" a hit was; it measures **risk**.
 
@@ -109,7 +109,7 @@ The code utilizes a probability function that combines PLA and PRA to determine 
 
 ---
 
-## 🧠 Global State Management
+## 🧠Global State Management
 
 The code uses structured global states to keep the memory footprint organized:
 
@@ -118,7 +118,7 @@ The code uses structured global states to keep the memory footprint organized:
 
 ---
 
-## 💻 Web Dashboard
+## 💻Web Dashboard
 
 The built-in webserver provides a real-time interface:
 
@@ -128,7 +128,7 @@ The built-in webserver provides a real-time interface:
 
 ---
 
-## ⚠️ Safety Disclaimer
+## ⚠️Safety Disclaimer
 
 This device is a **prototype** and is intended for research and educational purposes only. It is **not** a certified medical device.
 
