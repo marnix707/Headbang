@@ -20,7 +20,7 @@ An intelligent, IoT-enabled impact monitoring system designed to detect high-G h
 
 ---
 
-## 🛰️ System Overview
+## 🛰️ System Overview (#system-overview)
 
 The Impact Monitor functions as a standalone **Wi-Fi Access Point**. It samples sensor data at high frequencies (~800Hz) to ensure that sub-millisecond impact peaks are captured accurately.
 
@@ -31,7 +31,7 @@ The Impact Monitor functions as a standalone **Wi-Fi Access Point**. It samples 
 
 ---
 
-## 🔌 Hardware Requirements
+## 🔌 Hardware Requirements (#hardware-requirements)
 
 ### Component List
 | Component | Purpose | Details |
