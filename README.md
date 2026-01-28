@@ -11,7 +11,7 @@ An intelligent, IoT-enabled impact monitoring system designed to detect high-G h
 
 ## 📑Table of Contents
 
-1. [System Overview](#system-overview)
+1. [System full Overview](#system-overview) 
 2. [Hardware Requirements](#hardware-requirements)
 3. [Wiring & Connections](#wiring--connections)
 4. [Software Architecture](#software-architecture)
